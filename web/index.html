@@ -572,15 +572,15 @@
             { key: "snapshot.cycleId", nameZh: "回撤周期ID", nameEn: "Drawdown Cycle ID", description: "用于区分不同回撤周期（建议补充）。", type: "string", default: "", editable: false, validation: { required: false, maxLength: 64 } }
           ]
         },
-        {
-          id: "meta",
-          titleZh: "状态（只读）",
-          titleEn: "Meta (Read-only)",
-          fields: [
-            { key: "meta.configVersion", nameZh: "配置版本号", nameEn: "Config Version", description: "每次保存自动递增。", type: "integer", default: 1, editable: false, validation: { required: true, min: 1, max: 1000000000 } },
-            { key: "meta.lastSavedAt", nameZh: "最后保存时间", nameEn: "Last Saved At", description: "每次保存自动更新（ISO 字符串）。", type: "string", default: "", editable: false, validation: { required: false, maxLength: 64 } }
-          ]
-        },
+        // {
+        //   id: "meta",
+        //   titleZh: "状态（只读）",
+        //   titleEn: "Meta (Read-only)",
+        //   fields: [
+        //     { key: "meta.configVersion", nameZh: "配置版本号", nameEn: "Config Version", description: "每次保存自动递增。", type: "integer", default: 1, editable: false, validation: { required: true, min: 1, max: 1000000000 } },
+        //     { key: "meta.lastSavedAt", nameZh: "最后保存时间", nameEn: "Last Saved At", description: "每次保存自动更新（ISO 字符串）。", type: "string", default: "", editable: false, validation: { required: false, maxLength: 64 } }
+        //   ]
+        // },
         {
           id: "nsdk",
           titleZh: "NSDK 运行配置",
@@ -924,6 +924,16 @@
       return getDrawdownLevelsFromSettings().map((tier) => ({ tier: String(tier), executed: Boolean(executed[String(tier)]) }));
     }
 
+    function drawdownSnapshotActive() {
+      if (state.nsdkState?.drawdownRound) return true;
+      const snapshot = state.settings?.snapshot || {};
+      return Boolean(
+        String(snapshot.lockedAt || "").trim()
+        || String(snapshot.cycleId || "").trim()
+        || Number(snapshot.baselineReserveAmount) > 0
+      );
+    }
+
     function drawdownTierRows() {
       const round = state.nsdkState?.drawdownRound;
       if (!round) return [];
@@ -1251,10 +1261,19 @@
       if (!state.settings) return "";
       const validation = localValidation();
       const groups = (state.schema.groups || []).filter((g) => g && g.hidden !== true);
+      const nsdkVisibleKeys = new Set(["nsdk.dailyChecks", "nsdk.otcDcaCnyPerWorkday"]);
+      const visibleFields = (group) => {
+        const fields = (group.fields || []).filter((field) => field && field.hidden !== true);
+        if (group.id !== "nsdk") return fields;
+        return fields
+          .filter((field) => nsdkVisibleKeys.has(field.key))
+          .sort((a, b) => Number(a.key !== "nsdk.dailyChecks") - Number(b.key !== "nsdk.dailyChecks"));
+      };
       return `
         <section>
           ${groups.map((group) => {
             const open = state.openedGroups.has(group.id);
+            const fields = visibleFields(group);
             return `
               <details class="group" data-group="${escapeHtml(group.id)}" ${open ? "open" : ""}>
                 <summary>
@@ -1262,7 +1281,7 @@
                   <span class="summary-mark">${open ? "−" : "+"}</span>
                 </summary>
                 <div class="group-grid">
-                  ${(group.fields || []).map((field) => {
+                  ${fields.map((field) => {
                     const errors = validation.fieldErrors?.[field.key] || [];
                     return `
                       <div class="field">
@@ -1403,7 +1422,7 @@
           </header>
           ${renderNotice(state.fileMessage, state.fileMessageType)}
           ${renderActions()}
-          ${state.settings ? `
+          ${state.settings && drawdownSnapshotActive() ? `
             <section class="section">
               <div class="section-head">
                 <h2 class="section-title">回撤档位执行状态</h2>

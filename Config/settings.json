@@ -9,7 +9,7 @@
     "reserveCashTargetPercent": 20
   },
   "portfolio": {
-    "investedNasdaqCny": 54549,
+    "investedNasdaqCny": 64549,
     "reserveCashNasdaqCny": 40000,
     "reserveUsedNasdaqCny": 0,
     "fearOfMissingOut": false
@@ -66,7 +66,7 @@
     "dailyChecks": [
       {
         "hour": "10",
-        "minute": "30"
+        "minute": "00"
       },
       {
         "hour": "14",
