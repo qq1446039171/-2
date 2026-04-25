@@ -66,6 +66,7 @@ const startupHeartbeat = async (cfg, state) => {
     `标的：${cfg.fund?.name || ''}（${cfg.fund?.code || ''}）`,
     `例行检查：${daily}（工作日）`,
     `主动建仓提醒：${weekly}`,
+    `月度现金流：¥${cfg.monthlyCashflowCny ?? 'N/A'}`,
     `日志目录：${cfg.logDir || 'logs/（默认）'}`
   ].join('\n\n');
 

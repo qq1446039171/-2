@@ -1,17 +1,20 @@
 {
   "funds": {
     "depositAmount": 200000,
-    "nasdaqExposureLimitPercent": 60
+    "nasdaqExposureLimitPercent": 70
   },
   "allocation": {
     "fixedAllocationEnabled": true,
     "boughtTargetPercent": 40,
-    "reserveCashTargetPercent": 20
+    "reserveCashTargetPercent": 30,
+    "otherCashTargetPercent": 30,
+    "monthlyCashflowCny": 4000
   },
   "portfolio": {
-    "investedNasdaqCny": 64549,
-    "reserveCashNasdaqCny": 40000,
+    "investedNasdaqCny": 65000,
+    "reserveCashNasdaqCny": 0,
     "reserveUsedNasdaqCny": 0,
+    "otherCashCny": 135000,
     "fearOfMissingOut": false
   },
   "drawdown": {
@@ -55,14 +58,8 @@
       "sendKey": "SCT311262TCOvXh9AgIsoNeaxuvTJYFkxM"
     },
     "startupHeartbeatEnabled": true,
-    "otcDcaCnyPerWorkday": 120,
-    "weeklyActiveBuy": {
-      "weekday": "Fri",
-      "hour": "10",
-      "minute": "20",
-      "minCny": 5000,
-      "maxCny": 7000
-    },
+    "otcDcaCnyPerWorkday": 0,
+    "weeklyActiveBuy": null,
     "dailyChecks": [
       {
         "hour": "10",

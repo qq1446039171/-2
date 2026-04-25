@@ -221,7 +221,7 @@ const ensureFreezeState = (cfg, state) => {
 
   let reason = null;
   if (invested >= targets.activeTarget) reason = '已买入纳指≥40%';
-  else if ((invested + reserve) >= targets.exposureMax) reason = '纳指相关敞口≥60%';
+  else if ((invested + reserve) >= targets.exposureMax) reason = '纳指相关敞口≥70%';
   else if (fear) reason = '连续上涨触发怕踏空（手动标记）';
 
   if (reason) {
@@ -409,7 +409,7 @@ const weeklyActiveReminder = async (cfg, state) => {
       `原因：${state.freeze.reason}`,
       `已买入纳指：${fmtCny(invested)} 元`,
       `40%目标：${fmtCny(Math.round(targets.activeTarget))} 元`,
-      `保留：场外 120 元/工作日定投`,
+      `月度现金流：¥${fmtCny(cfg.monthlyCashflowCny)}，冻结期全进其他现金`,
     ].join('\n\n');
     const pushRet = await push(cfg, { title, body });
     logEvent({ type: 'weekly_active_frozen', pushRet, invested, targets });
@@ -433,7 +433,7 @@ const weeklyActiveReminder = async (cfg, state) => {
     const body = [
       `已买入纳指：${fmtCny(invested)} 元`,
       `40%目标：${fmtCny(Math.round(targets.activeTarget))} 元`,
-      '停止所有主动买入，仅保留场外 120 元/工作日定投。'
+      `停止所有主动买入；月度 ¥${fmtCny(cfg.monthlyCashflowCny)} 全进其他现金。`
     ].join('\n\n');
     const pushRet = await push(cfg, { title, body });
     logEvent({ type: 'weekly_active_done', pushRet, invested, targets });

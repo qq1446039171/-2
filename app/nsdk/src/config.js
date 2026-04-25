@@ -52,19 +52,16 @@ const buildConfigFromSettings = (settings) => {
   if (!nsdk) throw new Error('settings.json missing nsdk');
 
   const depositAmount = clampNumber(settings?.funds?.depositAmount, 0);
-  const exposureLimitPercent = clampNumber(settings?.funds?.nasdaqExposureLimitPercent, 60);
+  const exposureLimitPercent = clampNumber(settings?.funds?.nasdaqExposureLimitPercent, 70);
   const boughtTargetPercent = clampNumber(settings?.allocation?.boughtTargetPercent, 40);
-  const reserveTargetPercent = clampNumber(settings?.allocation?.reserveCashTargetPercent, 20);
+  const reserveTargetPercent = clampNumber(settings?.allocation?.reserveCashTargetPercent, 30);
+  const otherCashTargetPercent = clampNumber(settings?.allocation?.otherCashTargetPercent, 30);
+  const monthlyCashflowCny = clampNumber(settings?.allocation?.monthlyCashflowCny, 4000);
 
-  const reserveTargetCny = (depositAmount * reserveTargetPercent) / 100;
-  const reserveRemainingFromSettings = clampNumber(settings?.portfolio?.reserveCashNasdaqCny, NaN);
-  const reserveUsedFromSettings = clampNumber(settings?.portfolio?.reserveUsedNasdaqCny, NaN);
-  const reserveUsedCny = Number.isFinite(reserveUsedFromSettings)
-    ? Math.max(0, reserveUsedFromSettings)
-    : Number.isFinite(reserveRemainingFromSettings)
-      ? Math.max(0, reserveTargetCny - reserveRemainingFromSettings)
-      : 0;
-  const reserveCashNasdaqCny = Math.max(0, reserveTargetCny - reserveUsedCny);
+  const investedNasdaqCny = Math.max(0, clampNumber(settings?.portfolio?.investedNasdaqCny, 0));
+  const reserveCashNasdaqCny = Math.max(0, clampNumber(settings?.portfolio?.reserveCashNasdaqCny, 0));
+  const otherCashCny = Math.max(0, clampNumber(settings?.portfolio?.otherCashCny, Math.max(0, depositAmount - investedNasdaqCny - reserveCashNasdaqCny)));
+  const normalizedTotalAssetsCny = investedNasdaqCny + reserveCashNasdaqCny + otherCashCny;
 
   const rawBenchmark = nsdk.benchmark && typeof nsdk.benchmark === 'object' ? nsdk.benchmark : null;
   const benchmarkProvider = rawBenchmark?.provider || 'eastmoney';
@@ -103,16 +100,19 @@ const buildConfigFromSettings = (settings) => {
     dailyChecks: nsdk.dailyChecks || [],
     weeklyActiveBuy: nsdk.weeklyActiveBuy || null,
     otcDcaCnyPerWorkday: nsdk.otcDcaCnyPerWorkday,
-    baseTotalAssetsCny: Math.round(depositAmount),
+    monthlyCashflowCny,
+    baseTotalAssetsCny: Math.round(normalizedTotalAssetsCny || depositAmount),
     maxNasdaqExposureRatio: exposureLimitPercent / 100,
     activeMaxInvestRatio: boughtTargetPercent / 100,
     reserveRatio: reserveTargetPercent / 100,
+    otherCashRatio: otherCashTargetPercent / 100,
     drawdownLevels,
     drawdownExecutedLevels,
     portfolio: {
-      investedNasdaqCny: Math.round(clampNumber(settings?.portfolio?.investedNasdaqCny, 0)),
+      investedNasdaqCny: Math.round(investedNasdaqCny),
       reserveCashNasdaqCny: Math.round(reserveCashNasdaqCny),
-      reserveUsedNasdaqCny: Math.round(reserveUsedCny),
+      otherCashCny: Math.round(otherCashCny),
+      reserveUsedNasdaqCny: Math.round(Math.max(0, clampNumber(settings?.portfolio?.reserveUsedNasdaqCny, 0))),
       fearOfMissingOut: Boolean(settings?.portfolio?.fearOfMissingOut ?? false)
     }
   };

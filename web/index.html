@@ -533,8 +533,8 @@
           titleZh: "资金与敞口",
           titleEn: "Funds & Exposure",
           fields: [
-            { key: "funds.depositAmount", nameZh: "当前存款金额", nameEn: "Current Deposit Amount", description: "用户能手动设置：当前存款金额。", type: "number", default: 0, validation: { required: true, min: 0, max: 1000000000 } },
-            { key: "funds.nasdaqExposureLimitPercent", nameZh: "纳指相关敞口上限(%)", nameEn: "NASDAQ Exposure Limit (%)", description: "纳指相关敞口上限默认 60%，支持手动修改。", type: "number", default: 60, validation: { required: true, min: 0, max: 100 } }
+            { key: "funds.depositAmount", nameZh: "总资产(自动汇总)", nameEn: "Total Assets (Auto)", description: "总资产 = 纳指持仓 + 备用金 + 其他现金。按 v3.0 执行手册，看比例不看固定金额。", type: "number", default: 0, editable: false, validation: { required: true, min: 0, max: 1000000000 } },
+            { key: "funds.nasdaqExposureLimitPercent", nameZh: "纳指相关敞口上限(%)", nameEn: "NASDAQ Exposure Limit (%)", description: "v3.0：纳指相关总敞口上限为 70%（持仓 + 备用金）。", type: "number", default: 70, validation: { required: true, min: 0, max: 100 } }
           ]
         },
         {
@@ -543,9 +543,11 @@
           titleEn: "Fixed Allocation",
           hidden: true,
           fields: [
-            { key: "allocation.fixedAllocationEnabled", nameZh: "启用固定比例约束", nameEn: "Enable Fixed Allocation Constraint", description: "固定比例：40% 已买入纳指资产 + 20% 备用纳指资金（现金）。启用后将强制约束比例关系。", type: "boolean", default: true, validation: { required: true } },
+            { key: "allocation.fixedAllocationEnabled", nameZh: "启用固定比例约束", nameEn: "Enable Fixed Allocation Constraint", description: "v3.0 固定比例：40% 持仓 + 30% 备用金 + 30% 其他现金。", type: "boolean", default: true, validation: { required: true } },
             { key: "allocation.boughtTargetPercent", nameZh: "纳指目标占比(%)", nameEn: "Bought Target (%)", description: "固定比例默认 40%。用于计算“目标金额”与校验，不代表当前已买入金额。", type: "number", default: 40, validation: { required: true, min: 0, max: 100 } },
-            { key: "allocation.reserveCashTargetPercent", nameZh: "备用纳指资金目标占比(%)", nameEn: "Reserve Cash Target (%)", description: "固定比例默认 20%。用于计算“目标金额”与校验，不代表当前备用金金额。", type: "number", default: 20, validation: { required: true, min: 0, max: 100 } }
+            { key: "allocation.reserveCashTargetPercent", nameZh: "备用金目标占比(%)", nameEn: "Reserve Cash Target (%)", description: "v3.0：备用金目标 30%，仅用于回撤分档买入。", type: "number", default: 30, validation: { required: true, min: 0, max: 100 } },
+            { key: "allocation.otherCashTargetPercent", nameZh: "其他现金目标占比(%)", nameEn: "Other Cash Target (%)", description: "v3.0：其他现金目标 30%，用于生活/应急/自由支配。", type: "number", default: 30, validation: { required: true, min: 0, max: 100 } },
+            { key: "allocation.monthlyCashflowCny", nameZh: "月度现金流(元)", nameEn: "Monthly Cashflow (CNY)", description: "执行手册：每月发工资后操作一次，默认 ¥4,000。", type: "number", default: 4000, validation: { required: true, min: 0, max: 1000000000 } }
           ]
         },
         {
@@ -554,8 +556,9 @@
           titleEn: "Portfolio Amounts",
           fields: [
             { key: "portfolio.investedNasdaqCny", nameZh: "纳指已投资金额(元)", nameEn: "Invested NASDAQ Amount (CNY)", description: "手动维护：当前已买入纳指相关资产的市值/金额。", type: "number", default: 0, validation: { required: true, min: 0, max: 1000000000 } },
-            { key: "portfolio.reserveCashNasdaqCny", nameZh: "备用纳指资金余额(元)", nameEn: "Reserve Cash Remaining (CNY)", description: "自动计算：备用金目标金额 - 已使用额度。", type: "number", default: 0, editable: false, validation: { required: true, min: 0, max: 1000000000 } },
-            { key: "portfolio.reserveUsedNasdaqCny", nameZh: "纳指备用金已使用额度(元)", nameEn: "Reserve Used Amount (CNY)", description: "手动维护：从备用金目标中已使用/已投入的额度。", type: "number", default: 0, validation: { required: true, min: 0, max: 1000000000 } },
+            { key: "portfolio.reserveCashNasdaqCny", nameZh: "备用金余额(元)", nameEn: "Reserve Cash Balance (CNY)", description: "手动维护：当前余额宝/短债中的纳指备用金余额；回撤快照按这个真实余额锁定。", type: "number", default: 0, validation: { required: true, min: 0, max: 1000000000 } },
+            { key: "portfolio.reserveUsedNasdaqCny", nameZh: "纳指备用金已使用额度(元)", nameEn: "Reserve Used Amount (CNY)", description: "兼容旧配置字段；v3.0 页面按真实备用金余额执行。", type: "number", default: 0, hidden: true, validation: { required: true, min: 0, max: 1000000000 } },
+            { key: "portfolio.otherCashCny", nameZh: "其他现金(元)", nameEn: "Other Cash (CNY)", description: "生活/应急/自由支配现金。总资产由持仓、备用金、其他现金自动汇总。", type: "number", default: 0, validation: { required: true, min: 0, max: 1000000000 } },
             { key: "portfolio.fearOfMissingOut", nameZh: "怕踏空标记", nameEn: "Fear Of Missing Out", description: "手动标记：连续上涨触发怕踏空时打开；NSDK将据此进入冻结状态。", type: "boolean", default: false, validation: { required: true } }
           ]
         },
@@ -599,8 +602,8 @@
             { key: "nsdk.pushEnabled", nameZh: "启用推送", nameEn: "Push Enabled", description: "关闭后不推送（仍会运行与写日志）。", type: "boolean", default: true, validation: { required: true } },
             { key: "nsdk.serverChan.sendKey", nameZh: "Server酱 SendKey", nameEn: "ServerChan SendKey", description: "pushEnabled 为 true 时必填。", type: "string", default: "", props: { type: "password", showPassword: true }, validation: { required: false, maxLength: 128 } },
             { key: "nsdk.startupHeartbeatEnabled", nameZh: "启动心跳", nameEn: "Startup Heartbeat", description: "启动后每日只推送一次心跳。", type: "boolean", default: true, validation: { required: true } },
-            { key: "nsdk.otcDcaCnyPerWorkday", nameZh: "每日定投(工作日/元)", nameEn: "OTC DCA per Workday", description: "工作日的固定小额定投金额。", type: "number", default: 120, validation: { required: true, min: 0, max: 1000000000 } },
-            { key: "nsdk.weeklyActiveBuy", nameZh: "每周主动建仓（JSON）", nameEn: "Weekly Active Buy (JSON)", description: "可填 null 关闭；或填对象配置星期/时间/金额区间。", type: "object", default: { weekday: "Fri", hour: "10", minute: "00", minCny: 5000, maxCny: 7000 }, validation: { required: false } },
+            { key: "nsdk.otcDcaCnyPerWorkday", nameZh: "每日定投(工作日/元)", nameEn: "OTC DCA per Workday", description: "旧版兼容字段；v3.0 以月度现金流和月度场外定投为主。", type: "number", default: 0, hidden: true, validation: { required: true, min: 0, max: 1000000000 } },
+            { key: "nsdk.weeklyActiveBuy", nameZh: "每周主动建仓（JSON）", nameEn: "Weekly Active Buy (JSON)", description: "旧版兼容字段；v3.0 默认关闭，月度操作按执行面板建议处理。", type: "object", default: null, validation: { required: false } },
             { key: "nsdk.dailyChecks", nameZh: "每日例行检查时间点（JSON）", nameEn: "Daily Checks (JSON)", description: "数组：[{hour:'10',minute:'30'},{hour:'14',minute:'30'}]。", type: "objectArray", default: [{ hour: "10", minute: "30" }, { hour: "14", minute: "30" }], validation: { required: true } }
           ]
         }
@@ -644,6 +647,8 @@
       adjustOpen: false,
       addDepositDelta: 0,
       addNasdaqInvestDelta: 0,
+      addReserveDelta: 0,
+      addOtherCashDelta: 0,
       versionsOpen: false,
       diffChanges: []
     };
@@ -706,18 +711,12 @@
 
       if (src.portfolio && typeof src.portfolio === "object") {
         const deposit = Number(src?.funds?.depositAmount) || 0;
-        const reserveTargetPercent = Number(src?.allocation?.reserveCashTargetPercent) || 0;
-        const targetReserve = (deposit * reserveTargetPercent) / 100;
-        const hasUsed = src.portfolio.reserveUsedNasdaqCny !== undefined;
-        const hasRemaining = src.portfolio.reserveCashNasdaqCny !== undefined;
-        let used = hasUsed ? Number(src.portfolio.reserveUsedNasdaqCny) || 0 : 0;
-        if (!hasUsed && hasRemaining) {
-          const remaining = Number(src.portfolio.reserveCashNasdaqCny) || 0;
-          used = Math.max(0, targetReserve - remaining);
+        const invested = Math.max(0, Number(src.portfolio.investedNasdaqCny) || 0);
+        const reserve = Math.max(0, Number(src.portfolio.reserveCashNasdaqCny) || 0);
+        if (src.portfolio.otherCashCny === undefined) {
+          src.portfolio.otherCashCny = Math.max(0, deposit - invested - reserve);
         }
-        used = Math.max(0, used);
-        src.portfolio.reserveUsedNasdaqCny = used;
-        src.portfolio.reserveCashNasdaqCny = Math.max(0, targetReserve - used);
+        src.portfolio.reserveUsedNasdaqCny = Math.max(0, Number(src.portfolio.reserveUsedNasdaqCny) || 0);
       }
 
       for (const group of targetSchema.groups || []) {
@@ -770,6 +769,15 @@
       const exposureLimitPercent = deepGet(settings, "funds.nasdaqExposureLimitPercent");
       const investedAmount = deepGet(settings, "portfolio.investedNasdaqCny");
       const reserveAmount = deepGet(settings, "portfolio.reserveCashNasdaqCny");
+      const boughtTarget = Number(deepGet(settings, "allocation.boughtTargetPercent")) || 0;
+      const reserveTarget = Number(deepGet(settings, "allocation.reserveCashTargetPercent")) || 0;
+      const otherTarget = Number(deepGet(settings, "allocation.otherCashTargetPercent")) || 0;
+      if (Math.abs((boughtTarget + reserveTarget + otherTarget) - 100) > 1e-6) {
+        const msg = "v3.0 三账户比例合计应为 100%";
+        addErr("allocation.boughtTargetPercent", msg);
+        addErr("allocation.reserveCashTargetPercent", msg);
+        addErr("allocation.otherCashTargetPercent", msg);
+      }
       const maxExposure = ((Number(deposit) || 0) * (Number(exposureLimitPercent) || 0)) / 100;
       const currentExposure = (Number(investedAmount) || 0) + (Number(reserveAmount) || 0);
       if (Number.isFinite(maxExposure) && maxExposure >= 0 && currentExposure > maxExposure + 1e-6) {
@@ -877,21 +885,37 @@
     function depositAmount() { return Number(state.settings?.funds?.depositAmount) || 0; }
     function nasdaqInvestedAmount() { return Number(state.settings?.portfolio?.investedNasdaqCny) || 0; }
     function nasdaqReserveCashAmount() { return Number(state.settings?.portfolio?.reserveCashNasdaqCny) || 0; }
+    function otherCashAmount() { return Number(state.settings?.portfolio?.otherCashCny) || 0; }
     function nasdaqReserveUsedAmount() { return Number(state.settings?.portfolio?.reserveUsedNasdaqCny) || 0; }
     function exposureLimitPercent() { return Number(state.settings?.funds?.nasdaqExposureLimitPercent) || 0; }
     function boughtTargetPercent() { return Number(state.settings?.allocation?.boughtTargetPercent) || 0; }
     function reserveTargetPercent() { return Number(state.settings?.allocation?.reserveCashTargetPercent) || 0; }
+    function otherCashTargetPercent() { return Number(state.settings?.allocation?.otherCashTargetPercent) || 0; }
+    function monthlyCashflowAmount() { return Number(state.settings?.allocation?.monthlyCashflowCny) || 0; }
     function targetInvestAmount() { return (depositAmount() * boughtTargetPercent()) / 100; }
     function remainingInvestAmount() { return Math.max(0, targetInvestAmount() - nasdaqInvestedAmount()); }
     function targetReserveAmount() { return (depositAmount() * reserveTargetPercent()) / 100; }
+    function remainingReserveAmount() { return Math.max(0, targetReserveAmount() - nasdaqReserveCashAmount()); }
+    function targetOtherCashAmount() { return (depositAmount() * otherCashTargetPercent()) / 100; }
     function reserveUsedAmount() { return Math.max(0, nasdaqReserveUsedAmount()); }
-    function reserveCashAuto() { return Math.max(0, targetReserveAmount() - reserveUsedAmount()); }
     function maxExposureAmount() { return (depositAmount() * exposureLimitPercent()) / 100; }
     function currentExposureAmount() { return nasdaqInvestedAmount() + nasdaqReserveCashAmount(); }
     function remainingExposureAmount() { return Math.max(0, maxExposureAmount() - currentExposureAmount()); }
     function pctOfDeposit(value) { return depositAmount() <= 0 ? 0 : Math.round((value / depositAmount()) * 10000) / 100; }
     function reserveUsedPercentOfTarget() { return targetReserveAmount() <= 0 ? 0 : Math.round((reserveUsedAmount() / targetReserveAmount()) * 10000) / 100; }
     function nasdaqExposureOverLimit() { return currentExposureAmount() > maxExposureAmount() + 1e-6; }
+    function monthlyPlan() {
+      const monthly = monthlyCashflowAmount();
+      const investPart = Math.round(monthly * (boughtTargetPercent() / 100));
+      const reservePart = Math.round(monthly * (reserveTargetPercent() / 100));
+      if (nasdaqInvestedAmount() >= targetInvestAmount() - 1e-6) {
+        return { invest: 0, reserve: 0, other: monthly, label: "持仓已达 40%，本月全进其他现金" };
+      }
+      if (nasdaqReserveCashAmount() >= targetReserveAmount() - 1e-6) {
+        return { invest: investPart, reserve: 0, other: Math.max(0, monthly - investPart), label: "持仓未满、备用金已满，本月买持仓并溢出其他现金" };
+      }
+      return { invest: investPart, reserve: reservePart, other: Math.max(0, monthly - investPart - reservePart), label: "持仓与备用金都未满，本月按 40/30/30 分配" };
+    }
     function dirty() { return Boolean(state.settings && state.loadedSettings && JSON.stringify(state.settings) !== JSON.stringify(state.loadedSettings)); }
     function nsdkStateDirty() { return Boolean(state.nsdkState && state.loadedNsdkState && JSON.stringify(state.nsdkState) !== JSON.stringify(state.loadedNsdkState)); }
     function localValidation() { return state.settings ? validateLocal(state.schema, state.settings) : { ok: true, fieldErrors: {} }; }
@@ -899,9 +923,10 @@
 
     function syncDerived() {
       if (!state.settings) return;
-      const current = Number(state.settings?.portfolio?.reserveCashNasdaqCny) || 0;
-      const next = Math.round(reserveCashAuto() * 100) / 100;
-      if (Math.abs(current - next) > 1e-6) deepSet(state.settings, "portfolio.reserveCashNasdaqCny", next);
+      const total = Math.max(0, nasdaqInvestedAmount()) + Math.max(0, nasdaqReserveCashAmount()) + Math.max(0, otherCashAmount());
+      const next = Math.round(total * 100) / 100;
+      const current = Number(state.settings?.funds?.depositAmount) || 0;
+      if (Math.abs(current - next) > 1e-6) deepSet(state.settings, "funds.depositAmount", next);
     }
 
     function getDrawdownLevelsFromSettings() {
@@ -1178,46 +1203,75 @@
       if (!state.settings) return "";
       const total = depositAmount();
       const invested = nasdaqInvestedAmount();
+      const reserve = nasdaqReserveCashAmount();
+      const other = otherCashAmount();
       const investedPct = pctOfDeposit(invested);
-      const deg = total > 0 ? Math.max(0, Math.min(360, (invested / total) * 360)) : 0;
+      const reservePct = pctOfDeposit(reserve);
+      const otherPct = pctOfDeposit(other);
+      const exposurePct = pctOfDeposit(currentExposureAmount());
+      const deg = total > 0 ? Math.max(0, Math.min(360, (currentExposureAmount() / total) * 360)) : 0;
       const latest = state.nsdkState?.lastMarket?.benchmark || null;
       const latestLine = latest ? `<div class="market-line">推送标的：${escapeHtml(latest.name || latest.code || "-")} · 当前价格：${escapeHtml(fmtMoney(latest.price))} · 回撤幅度：${escapeHtml(fmtPercent(latest.drawdownPct))}%</div>` : "";
+      const plan = monthlyPlan();
+      const freezeReasons = [];
+      if (invested >= targetInvestAmount() - 1e-6) freezeReasons.push("持仓≥40%");
+      if (currentExposureAmount() >= maxExposureAmount() - 1e-6) freezeReasons.push("敞口≥70%");
+      if (state.settings?.portfolio?.fearOfMissingOut) freezeReasons.push("怕踏空标记");
+      const freezeLine = freezeReasons.length ? `冻结：${freezeReasons.join(" / ")}` : "冻结：否";
+      const snapshotLine = drawdownSnapshotActive()
+        ? `快照已开启 · 基准 ¥${fmtMoney(state.settings?.snapshot?.baselineReserveAmount || state.nsdkState?.drawdownRound?.snapshotReserveCny || 0)}`
+        : "快照未开启 · 到 -10% 自动锁定备用金";
       return `
         <section class="section gold">
           <div class="section-head">
-            <h2 class="section-title gold">资产概览</h2>
+            <h2 class="section-title gold">v3.0 执行面板</h2>
             <button class="btn primary" data-action="open-adjust" ${state.settings ? "" : "disabled"}>新增金额</button>
           </div>
           <div class="overview">
             <div class="donut-wrap">
               <div class="donut" style="--invested-deg:${deg}deg">
                 <div class="donut-center">
-                  <div class="donut-number">${escapeHtml(fmtPercent(investedPct))}%</div>
-                  <div class="donut-label">纳指已投资</div>
+                  <div class="donut-number">${escapeHtml(fmtPercent(exposurePct))}%</div>
+                  <div class="donut-label">纳指总敞口</div>
                 </div>
               </div>
             </div>
             <div class="stats-grid">
               ${latestLine}
               <div class="stat">
-                <div class="stat-label">当前存款总金额</div>
+                <div class="stat-label">总资产</div>
                 <div class="stat-value">¥${escapeHtml(fmtMoney(total))}</div>
-                <div class="stat-note">敞口上限 ${escapeHtml(fmtPercent(exposureLimitPercent()))}% / ¥${escapeHtml(fmtMoney(maxExposureAmount()))}</div>
+                <div class="stat-note">持仓 ${escapeHtml(fmtPercent(boughtTargetPercent()))}% · 备用金 ${escapeHtml(fmtPercent(reserveTargetPercent()))}% · 其他 ${escapeHtml(fmtPercent(otherCashTargetPercent()))}%</div>
               </div>
               <div class="stat">
-                <div class="stat-label">纳指已投资金额</div>
+                <div class="stat-label">持仓（513100 + 场外基金）</div>
                 <div class="stat-value">¥${escapeHtml(fmtMoney(invested))}</div>
-                <div class="stat-note">${escapeHtml(fmtPercent(investedPct))}% · 还能投资 ${escapeHtml(fmtPercent(pctOfDeposit(remainingInvestAmount())))}% / ¥${escapeHtml(fmtMoney(remainingInvestAmount()))}</div>
+                <div class="stat-note">${escapeHtml(fmtPercent(investedPct))}% / 目标 ${escapeHtml(fmtPercent(boughtTargetPercent()))}% · 差 ¥${escapeHtml(fmtMoney(remainingInvestAmount()))}</div>
               </div>
               <div class="stat">
-                <div class="stat-label">备用金纳指金额</div>
-                <div class="stat-value">¥${escapeHtml(fmtMoney(nasdaqReserveCashAmount()))}</div>
-                <div class="stat-note">已使用额度 ${escapeHtml(fmtPercent(reserveUsedPercentOfTarget()))}% / ¥${escapeHtml(fmtMoney(reserveUsedAmount()))}</div>
+                <div class="stat-label">备用金（余额宝/短债）</div>
+                <div class="stat-value">¥${escapeHtml(fmtMoney(reserve))}</div>
+                <div class="stat-note">${escapeHtml(fmtPercent(reservePct))}% / 目标 ${escapeHtml(fmtPercent(reserveTargetPercent()))}% · 差 ¥${escapeHtml(fmtMoney(remainingReserveAmount()))}</div>
               </div>
               <div class="stat">
-                <div class="stat-label">剩余纳指敞口</div>
-                <div class="stat-value">¥${escapeHtml(fmtMoney(remainingExposureAmount()))}</div>
-                <div class="stat-note">剩余 ${escapeHtml(fmtPercent(pctOfDeposit(remainingExposureAmount())))}% · 当前敞口 ¥${escapeHtml(fmtMoney(currentExposureAmount()))}</div>
+                <div class="stat-label">其他现金</div>
+                <div class="stat-value">¥${escapeHtml(fmtMoney(other))}</div>
+                <div class="stat-note">${escapeHtml(fmtPercent(otherPct))}% / 目标 ${escapeHtml(fmtPercent(otherCashTargetPercent()))}% · 目标 ¥${escapeHtml(fmtMoney(targetOtherCashAmount()))}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">纳指总敞口</div>
+                <div class="stat-value">¥${escapeHtml(fmtMoney(currentExposureAmount()))}</div>
+                <div class="stat-note">${escapeHtml(fmtPercent(exposurePct))}% / 上限 ${escapeHtml(fmtPercent(exposureLimitPercent()))}% · 剩余 ¥${escapeHtml(fmtMoney(remainingExposureAmount()))}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">本月执行建议</div>
+                <div class="stat-value">¥${escapeHtml(fmtMoney(monthlyCashflowAmount()))}</div>
+                <div class="stat-note">${escapeHtml(plan.label)}：持仓 ¥${escapeHtml(fmtMoney(plan.invest))} / 备用金 ¥${escapeHtml(fmtMoney(plan.reserve))} / 其他 ¥${escapeHtml(fmtMoney(plan.other))}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-label">纪律状态</div>
+                <div class="stat-value">${escapeHtml(freezeReasons.length ? "冻结" : "正常")}</div>
+                <div class="stat-note">${escapeHtml(freezeLine)} · ${escapeHtml(snapshotLine)}</div>
               </div>
             </div>
           </div>
@@ -1334,28 +1388,42 @@
 
     function renderAdjustModal() {
       if (!state.adjustOpen) return "";
-      const previewDeposit = Math.max(0, depositAmount() + (Number(state.addDepositDelta) || 0));
-      const previewInvested = previewDeposit > 0
-        ? Math.min(Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0)), previewDeposit)
-        : Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
-      const canApply = (Number(state.addDepositDelta) || 0) !== 0 || (Number(state.addNasdaqInvestDelta) || 0) !== 0;
+      const previewInvested = Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
+      const previewReserve = Math.max(0, nasdaqReserveCashAmount() + (Number(state.addReserveDelta) || 0));
+      const previewOther = Math.max(0, otherCashAmount() + (Number(state.addDepositDelta) || 0) + (Number(state.addOtherCashDelta) || 0));
+      const previewDeposit = previewInvested + previewReserve + previewOther;
+      const canApply = (Number(state.addDepositDelta) || 0) !== 0 || (Number(state.addNasdaqInvestDelta) || 0) !== 0 || (Number(state.addReserveDelta) || 0) !== 0 || (Number(state.addOtherCashDelta) || 0) !== 0;
       return `
         <div class="modal-backdrop" data-action="modal-backdrop">
           <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adjustTitle">
             <div class="modal-head">
-              <h2 id="adjustTitle" class="modal-title">新增金额</h2>
+              <h2 id="adjustTitle" class="modal-title">账户金额调整</h2>
               <button class="btn" data-action="close-adjust" aria-label="关闭">关闭</button>
             </div>
             <div class="dialog-grid">
               <div class="form-item">
-                <label for="addDeposit">新增总金额</label>
-                <input id="addDeposit" type="number" step="1000" min="0" data-adjust="addDepositDelta" value="${escapeHtml(state.addDepositDelta)}" />
-                <div id="depositPreview" class="field-desc">当前：¥${escapeHtml(fmtMoney(depositAmount()))} · 新值：¥${escapeHtml(fmtMoney(previewDeposit))}</div>
+                <label for="addDeposit">总资产变动</label>
+                <input id="addDeposit" type="number" step="1000" min="${escapeHtml(-otherCashAmount())}" data-adjust="addDepositDelta" value="${escapeHtml(state.addDepositDelta)}" />
+                <div class="field-desc">总资产变动会自动计入其他现金，保持三账户汇总闭环。</div>
               </div>
               <div class="form-item">
-                <label for="addInvest">新增纳指投资金额</label>
+                <label for="addInvest">纳指持仓变动</label>
                 <input id="addInvest" type="number" step="1000" min="${escapeHtml(-nasdaqInvestedAmount())}" data-adjust="addNasdaqInvestDelta" value="${escapeHtml(state.addNasdaqInvestDelta)}" />
                 <div id="investPreview" class="field-desc">当前：¥${escapeHtml(fmtMoney(nasdaqInvestedAmount()))} · 新值：¥${escapeHtml(fmtMoney(previewInvested))}</div>
+              </div>
+              <div class="form-item">
+                <label for="addReserve">备用金变动</label>
+                <input id="addReserve" type="number" step="1000" min="${escapeHtml(-nasdaqReserveCashAmount())}" data-adjust="addReserveDelta" value="${escapeHtml(state.addReserveDelta)}" />
+                <div id="reservePreview" class="field-desc">当前：¥${escapeHtml(fmtMoney(nasdaqReserveCashAmount()))} · 新值：¥${escapeHtml(fmtMoney(previewReserve))}</div>
+              </div>
+              <div class="form-item">
+                <label for="addOtherCash">其他现金变动</label>
+                <input id="addOtherCash" type="number" step="1000" min="${escapeHtml(-otherCashAmount())}" data-adjust="addOtherCashDelta" value="${escapeHtml(state.addOtherCashDelta)}" />
+                <div id="otherPreview" class="field-desc">当前：¥${escapeHtml(fmtMoney(otherCashAmount()))} · 新值：¥${escapeHtml(fmtMoney(previewOther))}</div>
+              </div>
+              <div class="form-item">
+                <label>总资产预览</label>
+                <div id="depositPreview" class="field-desc">当前：¥${escapeHtml(fmtMoney(depositAmount()))} · 新值：¥${escapeHtml(fmtMoney(previewDeposit))}</div>
               </div>
             </div>
             <div class="modal-foot">
@@ -1804,26 +1872,32 @@
     }
 
     function applyAdjust() {
-      const previewDeposit = Math.max(0, depositAmount() + (Number(state.addDepositDelta) || 0));
-      const nextInvest = Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
-      const previewInvested = previewDeposit > 0 ? Math.min(nextInvest, previewDeposit) : nextInvest;
-      deepSet(state.settings, "funds.depositAmount", Math.round(previewDeposit * 100) / 100);
+      const previewInvested = Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
+      const previewReserve = Math.max(0, nasdaqReserveCashAmount() + (Number(state.addReserveDelta) || 0));
+      const previewOther = Math.max(0, otherCashAmount() + (Number(state.addDepositDelta) || 0) + (Number(state.addOtherCashDelta) || 0));
       deepSet(state.settings, "portfolio.investedNasdaqCny", Math.round(previewInvested * 100) / 100);
+      deepSet(state.settings, "portfolio.reserveCashNasdaqCny", Math.round(previewReserve * 100) / 100);
+      deepSet(state.settings, "portfolio.otherCashCny", Math.round(previewOther * 100) / 100);
       state.adjustOpen = false;
       syncDerived();
       render();
     }
 
     function updateAdjustPreview() {
-      const previewDeposit = Math.max(0, depositAmount() + (Number(state.addDepositDelta) || 0));
-      const nextInvest = Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
-      const previewInvested = previewDeposit > 0 ? Math.min(nextInvest, previewDeposit) : nextInvest;
+      const previewInvested = Math.max(0, nasdaqInvestedAmount() + (Number(state.addNasdaqInvestDelta) || 0));
+      const previewReserve = Math.max(0, nasdaqReserveCashAmount() + (Number(state.addReserveDelta) || 0));
+      const previewOther = Math.max(0, otherCashAmount() + (Number(state.addDepositDelta) || 0) + (Number(state.addOtherCashDelta) || 0));
+      const previewDeposit = previewInvested + previewReserve + previewOther;
       const depositPreview = document.getElementById("depositPreview");
       const investPreview = document.getElementById("investPreview");
+      const reservePreview = document.getElementById("reservePreview");
+      const otherPreview = document.getElementById("otherPreview");
       const applyBtn = document.getElementById("applyAdjustBtn");
       if (depositPreview) depositPreview.textContent = `当前：¥${fmtMoney(depositAmount())} · 新值：¥${fmtMoney(previewDeposit)}`;
       if (investPreview) investPreview.textContent = `当前：¥${fmtMoney(nasdaqInvestedAmount())} · 新值：¥${fmtMoney(previewInvested)}`;
-      if (applyBtn) applyBtn.disabled = !((Number(state.addDepositDelta) || 0) !== 0 || (Number(state.addNasdaqInvestDelta) || 0) !== 0);
+      if (reservePreview) reservePreview.textContent = `当前：¥${fmtMoney(nasdaqReserveCashAmount())} · 新值：¥${fmtMoney(previewReserve)}`;
+      if (otherPreview) otherPreview.textContent = `当前：¥${fmtMoney(otherCashAmount())} · 新值：¥${fmtMoney(previewOther)}`;
+      if (applyBtn) applyBtn.disabled = !((Number(state.addDepositDelta) || 0) !== 0 || (Number(state.addNasdaqInvestDelta) || 0) !== 0 || (Number(state.addReserveDelta) || 0) !== 0 || (Number(state.addOtherCashDelta) || 0) !== 0);
     }
 
     app.addEventListener("click", async (event) => {
@@ -1840,7 +1914,7 @@
       else if (action === "open-github") { state.githubSaveOpen = true; render(); }
       else if (action === "close-github" || action === "modal-backdrop") { state.githubSaveOpen = false; state.adjustOpen = false; render(); }
       else if (action === "dispatch-github") await dispatchGithubSave();
-      else if (action === "open-adjust") { state.addDepositDelta = 0; state.addNasdaqInvestDelta = 0; state.adjustOpen = true; render(); }
+      else if (action === "open-adjust") { state.addDepositDelta = 0; state.addNasdaqInvestDelta = 0; state.addReserveDelta = 0; state.addOtherCashDelta = 0; state.adjustOpen = true; render(); }
       else if (action === "close-adjust") { state.adjustOpen = false; render(); }
       else if (action === "apply-adjust") applyAdjust();
       else if (action === "open-state-file") await openStateFile();
