@@ -1110,18 +1110,14 @@
           <div class="actions">
             <button class="btn primary" data-action="open-file">打开文件</button>
             <button class="btn success" data-action="save-file" ${state.settings && dirty() && localValidation().ok ? "" : "disabled"}>保存</button>
-            <button class="btn" data-action="save-as" ${state.settings ? "" : "disabled"}>另存为</button>
-            <button class="btn" data-action="reset-loaded" ${dirty() ? "" : "disabled"}>重置</button>
-            <button class="btn warning" data-action="reset-defaults">恢复默认</button>
-            <button class="btn" data-action="export-json" ${state.settings ? "" : "disabled"}>导出</button>
             <button class="btn success" data-action="open-github" ${state.settings ? "" : "disabled"}>保存到 GitHub</button>
-            <button class="btn" data-action="open-state-file">打开 state.json</button>
-            <button class="btn" data-action="open-versions">版本/日志</button>
+
           </div>
           ${renderNotice(state.saveMessage, state.saveMessageType)}
         </section>
       `;
     }
+    // <button class="btn" data-action="save-as" ${state.settings ? "" : "disabled"}>另存为</button>
 
     function renderDrawdownTable(rows, includeAmount = false) {
       const amountHead = includeAmount ? "<th>买入金额(¥)</th><th>已提醒</th>" : "";
