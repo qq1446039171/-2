@@ -1,0 +1,74 @@
+{
+  "funds": {
+    "depositAmount": 200000,
+    "nasdaqExposureLimitPercent": 70
+  },
+  "allocation": {
+    "fixedAllocationEnabled": true,
+    "boughtTargetPercent": 40,
+    "reserveCashTargetPercent": 30,
+    "otherCashTargetPercent": 30,
+    "monthlyCashflowCny": 4000
+  },
+  "portfolio": {
+    "investedNasdaqCny": 65000,
+    "reserveCashNasdaqCny": 0,
+    "reserveUsedNasdaqCny": 0,
+    "otherCashCny": 135000,
+    "fearOfMissingOut": false
+  },
+  "drawdown": {
+    "levelsPercent": [
+      -10,
+      -15,
+      -20,
+      -25
+    ],
+    "executedLevels": {}
+  },
+  "snapshot": {
+    "triggerLevelPercent": -10,
+    "baselineReserveAmount": 0,
+    "lockedAt": "",
+    "cycleId": ""
+  },
+  "meta": {
+    "configVersion": 9,
+    "lastSavedAt": "2026-02-02T06:12:49.995Z"
+  },
+  "nsdk": {
+    "fund": {
+      "code": "513100",
+      "secid": "1.513100",
+      "name": "纳指ETF"
+    },
+    "benchmark": {
+      "provider": "finnhub",
+      "secid": "1.513100",
+      "symbol": "NDX",
+      "name": "纳指100（NDX）"
+    },
+    "finnhub": {
+      "apiKey": "d7953thr01qp0fl778n0d7953thr01qp0fl778ng"
+    },
+    "timezone": "Asia/Shanghai",
+    "logDir": "D:/log-nsdk",
+    "pushEnabled": true,
+    "serverChan": {
+      "sendKey": "SCT311262TCOvXh9AgIsoNeaxuvTJYFkxM"
+    },
+    "startupHeartbeatEnabled": true,
+    "otcDcaCnyPerWorkday": 0,
+    "weeklyActiveBuy": null,
+    "dailyChecks": [
+      {
+        "hour": "10",
+        "minute": "00"
+      },
+      {
+        "hour": "14",
+        "minute": "00"
+      }
+    ]
+  }
+}
