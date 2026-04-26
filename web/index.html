@@ -618,6 +618,12 @@
     const settingsFileInput = document.getElementById("settingsFileInput");
     const stateFileInput = document.getElementById("stateFileInput");
 
+    const projectGithub = Object.freeze({
+      owner: "qq1446039171",
+      repo: "New-NASDAQ",
+      branch: "master"
+    });
+
     const state = {
       schema,
       settings: null,
@@ -639,9 +645,9 @@
       openedGroups: new Set(schema.groups.filter((g) => !g.hidden).map((g) => g.id)),
       githubSaveOpen: false,
       githubSaving: false,
-      githubRepoOwner: "qq1446039171",
-      githubRepoName: "New-NASDAQ",
-      githubBranch: "master",
+      githubRepoOwner: projectGithub.owner,
+      githubRepoName: projectGithub.repo,
+      githubBranch: projectGithub.branch,
       githubToken: "",
       githubCommitMessage: "chore(config): update settings from web",
       adjustOpen: false,
@@ -1013,6 +1019,7 @@
     }
 
     function persistGithubPrefs() {
+      enforceProjectGithubTarget();
       const stored = loadStoredState();
       stored.githubPrefs = {
         owner: state.githubRepoOwner,
@@ -1023,6 +1030,12 @@
       saveStoredState(stored);
     }
 
+    function enforceProjectGithubTarget() {
+      state.githubRepoOwner = projectGithub.owner;
+      state.githubRepoName = projectGithub.repo;
+      state.githubBranch = projectGithub.branch;
+    }
+
     function loadDefaults() {
       state.settings = normalizeBySchema(state.schema, {});
       syncDerived();
@@ -1030,6 +1043,8 @@
     }
 
     async function tryAutoLoadSettings() {
+      enforceProjectGithubTarget();
+      persistGithubPrefs();
       const candidates = [];
       const owner = state.githubRepoOwner.trim();
       const repo = state.githubRepoName.trim();
@@ -1366,9 +1381,9 @@
               <button class="btn" data-action="close-github" aria-label="关闭">关闭</button>
             </div>
             <div class="dialog-grid">
-              <div class="form-item"><label for="githubOwner">Repo Owner</label><input id="githubOwner" data-pref="githubRepoOwner" value="${escapeHtml(state.githubRepoOwner)}" placeholder="qq1446039171" /></div>
-              <div class="form-item"><label for="githubRepo">Repo Name</label><input id="githubRepo" data-pref="githubRepoName" value="${escapeHtml(state.githubRepoName)}" placeholder="New-NASDAQ" /></div>
-              <div class="form-item"><label for="githubBranch">Target Branch</label><input id="githubBranch" data-pref="githubBranch" value="${escapeHtml(state.githubBranch)}" placeholder="master" /></div>
+              <div class="form-item"><label for="githubOwner">Repo Owner</label><input id="githubOwner" data-pref="githubRepoOwner" value="${escapeHtml(state.githubRepoOwner)}" placeholder="qq1446039171" readonly /></div>
+              <div class="form-item"><label for="githubRepo">Repo Name</label><input id="githubRepo" data-pref="githubRepoName" value="${escapeHtml(state.githubRepoName)}" placeholder="New-NASDAQ" readonly /></div>
+              <div class="form-item"><label for="githubBranch">Target Branch</label><input id="githubBranch" data-pref="githubBranch" value="${escapeHtml(state.githubBranch)}" placeholder="master" readonly /></div>
               <div class="form-item"><label for="githubToken">GitHub Personal Access Token</label><input id="githubToken" data-pref="githubToken" type="password" value="${escapeHtml(state.githubToken)}" placeholder="需要 workflow 权限" /></div>
               <div class="form-item" style="grid-column:1/-1"><label for="githubCommit">Commit Message</label><input id="githubCommit" data-pref="githubCommitMessage" value="${escapeHtml(state.githubCommitMessage)}" placeholder="chore(config): update settings from web" /></div>
             </div>
@@ -1755,6 +1770,8 @@
 
     async function dispatchGithubSave() {
       if (!state.settings) return;
+      enforceProjectGithubTarget();
+      persistGithubPrefs();
       if (!state.githubRepoOwner.trim() || !state.githubRepoName.trim() || !state.githubBranch.trim() || !state.githubToken.trim()) {
         state.saveMessageType = "error";
         state.saveMessage = "请完整填写 owner、repo、branch 和 token。";
@@ -1968,12 +1985,11 @@
     (async function init() {
       const stored = loadStoredState();
       const prefs = stored.githubPrefs || {};
-      state.githubRepoOwner = prefs.owner || "qq1446039171";
-      state.githubRepoName = prefs.repo || "New-NASDAQ";
-      state.githubBranch = prefs.branch || "master";
-      if (state.githubRepoOwner === "qq1446039171" && state.githubRepoName === "New-NASDAQ" && state.githubBranch === "main") {
-        state.githubBranch = "master";
-      }
+      state.githubRepoOwner = prefs.owner || projectGithub.owner;
+      state.githubRepoName = prefs.repo || projectGithub.repo;
+      state.githubBranch = prefs.branch || projectGithub.branch;
+      enforceProjectGithubTarget();
+      persistGithubPrefs();
       state.githubCommitMessage = prefs.commitMessage || "chore(config): update settings from web";
       loadDefaults();
       render();
