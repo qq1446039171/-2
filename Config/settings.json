@@ -1,6 +1,6 @@
 {
   "funds": {
-    "depositAmount": 200000,
+    "depositAmount": 200001,
     "nasdaqExposureLimitPercent": 70
   },
   "allocation": {
@@ -11,7 +11,7 @@
     "monthlyCashflowCny": 4000
   },
   "portfolio": {
-    "investedNasdaqCny": 65000,
+    "investedNasdaqCny": 65001,
     "reserveCashNasdaqCny": 60000,
     "reserveUsedNasdaqCny": 0,
     "otherCashCny": 75000,
