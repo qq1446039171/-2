@@ -1057,8 +1057,8 @@
         });
       }
       candidates.push(
-        { source: "local-static", name: "Config/settings.json（同源静态文件）", url: "./Config/settings.json" },
-        { source: "local-static", name: "Config/settings.json（根路径）", url: "/Config/settings.json" }
+        { source: "local-static", name: "Config/settings.json（同源静态文件）", url: `./Config/settings.json?ts=${Date.now()}` },
+        { source: "local-static", name: "Config/settings.json（根路径）", url: `/Config/settings.json?ts=${Date.now()}` }
       );
 
       for (const candidate of candidates) {

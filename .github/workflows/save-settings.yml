@@ -13,9 +13,18 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   save-settings:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -56,3 +65,23 @@ jobs:
           git push origin "HEAD:${TARGET_BRANCH}"
         env:
           TARGET_BRANCH: ${{ github.ref_name }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Prepare static site
+        run: |
+          mkdir -p _site/Config
+          cp web/index.html _site/index.html
+          cp Config/settings.json _site/Config/settings.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
