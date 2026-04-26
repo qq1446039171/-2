@@ -12,9 +12,9 @@
   },
   "portfolio": {
     "investedNasdaqCny": 65000,
-    "reserveCashNasdaqCny": 0,
+    "reserveCashNasdaqCny": 60000,
     "reserveUsedNasdaqCny": 0,
-    "otherCashCny": 135000,
+    "otherCashCny": 75000,
     "fearOfMissingOut": false
   },
   "drawdown": {
