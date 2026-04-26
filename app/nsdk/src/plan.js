@@ -23,7 +23,7 @@ const normalizeLevels = (levels) => {
   return uniq.length ? uniq : [10, 15, 20, 25];
 };
 
-// 把基准总资产转换成 40%/30%/70% 的金额目标（这些是纪律用的“金额红线”）
+// 把基准总资产转换成金额目标：40% 持仓、30% 备用金、70% 持仓敞口上限。
 const computeTargets = (cfg) => {
   const total = Number(cfg.baseTotalAssetsCny);
   const activeTarget = total * Number(cfg.activeMaxInvestRatio);

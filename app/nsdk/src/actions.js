@@ -216,12 +216,11 @@ const pushTierAlert = async (cfg, state, benchmark, buy, tier) => {
 const ensureFreezeState = (cfg, state) => {
   const targets = computeTargets(cfg);
   const invested = Number(cfg.portfolio.investedNasdaqCny);
-  const reserve = Number(cfg.portfolio.reserveCashNasdaqCny);
   const fear = Boolean(cfg.portfolio.fearOfMissingOut);
 
   let reason = null;
   if (invested >= targets.activeTarget) reason = '已买入纳指≥40%';
-  else if ((invested + reserve) >= targets.exposureMax) reason = '纳指相关敞口≥70%';
+  else if (invested >= targets.exposureMax) reason = '纳指持仓敞口≥70%';
   else if (fear) reason = '连续上涨触发怕踏空（手动标记）';
 
   if (reason) {

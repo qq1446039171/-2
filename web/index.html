@@ -534,7 +534,7 @@
           titleEn: "Funds & Exposure",
           fields: [
             { key: "funds.depositAmount", nameZh: "总资产(自动汇总)", nameEn: "Total Assets (Auto)", description: "总资产 = 纳指持仓 + 备用金 + 其他现金。按 v3.0 执行手册，看比例不看固定金额。", type: "number", default: 0, editable: false, validation: { required: true, min: 0, max: 1000000000 } },
-            { key: "funds.nasdaqExposureLimitPercent", nameZh: "纳指相关敞口上限(%)", nameEn: "NASDAQ Exposure Limit (%)", description: "v3.0：纳指相关总敞口上限为 70%（持仓 + 备用金）。", type: "number", default: 70, validation: { required: true, min: 0, max: 100 } }
+            { key: "funds.nasdaqExposureLimitPercent", nameZh: "纳指持仓敞口上限(%)", nameEn: "NASDAQ Position Exposure Limit (%)", description: "v3.0：纳指敞口只计算当前持仓；备用金是未来买入弹药，不计入敞口。", type: "number", default: 70, validation: { required: true, min: 0, max: 100 } }
           ]
         },
         {
@@ -774,7 +774,6 @@
       const deposit = deepGet(settings, "funds.depositAmount");
       const exposureLimitPercent = deepGet(settings, "funds.nasdaqExposureLimitPercent");
       const investedAmount = deepGet(settings, "portfolio.investedNasdaqCny");
-      const reserveAmount = deepGet(settings, "portfolio.reserveCashNasdaqCny");
       const boughtTarget = Number(deepGet(settings, "allocation.boughtTargetPercent")) || 0;
       const reserveTarget = Number(deepGet(settings, "allocation.reserveCashTargetPercent")) || 0;
       const otherTarget = Number(deepGet(settings, "allocation.otherCashTargetPercent")) || 0;
@@ -785,11 +784,10 @@
         addErr("allocation.otherCashTargetPercent", msg);
       }
       const maxExposure = ((Number(deposit) || 0) * (Number(exposureLimitPercent) || 0)) / 100;
-      const currentExposure = (Number(investedAmount) || 0) + (Number(reserveAmount) || 0);
+      const currentExposure = Number(investedAmount) || 0;
       if (Number.isFinite(maxExposure) && maxExposure >= 0 && currentExposure > maxExposure + 1e-6) {
-        const msg = `当前纳指敞口（已投资+备用金 ${fmtMoney(currentExposure)}）超过上限（${fmtMoney(maxExposure)}）`;
+        const msg = `当前纳指持仓敞口（${fmtMoney(currentExposure)}）超过上限（${fmtMoney(maxExposure)}）`;
         addErr("portfolio.investedNasdaqCny", msg);
-        addErr("portfolio.reserveCashNasdaqCny", msg);
       }
 
       const pushEnabled = deepGet(settings, "nsdk.pushEnabled");
@@ -905,7 +903,7 @@
     function targetOtherCashAmount() { return (depositAmount() * otherCashTargetPercent()) / 100; }
     function reserveUsedAmount() { return Math.max(0, nasdaqReserveUsedAmount()); }
     function maxExposureAmount() { return (depositAmount() * exposureLimitPercent()) / 100; }
-    function currentExposureAmount() { return nasdaqInvestedAmount() + nasdaqReserveCashAmount(); }
+    function currentExposureAmount() { return nasdaqInvestedAmount(); }
     function remainingExposureAmount() { return Math.max(0, maxExposureAmount() - currentExposureAmount()); }
     function pctOfDeposit(value) { return depositAmount() <= 0 ? 0 : Math.round((value / depositAmount()) * 10000) / 100; }
     function reserveUsedPercentOfTarget() { return targetReserveAmount() <= 0 ? 0 : Math.round((reserveUsedAmount() / targetReserveAmount()) * 10000) / 100; }
@@ -1097,7 +1095,7 @@
       };
       const [type, label] = statusMap[state.fileStatus] || ["info", state.fileStatus];
       tags.push(`<span class="tag ${type}">${escapeHtml(label)}</span>`);
-      if (nasdaqExposureOverLimit()) tags.push('<span class="tag danger">纳指敞口超限</span>');
+      if (nasdaqExposureOverLimit()) tags.push('<span class="tag danger">纳指持仓敞口超限</span>');
       if (dirty()) tags.push('<span class="tag warning">未保存</span>');
       if (!localValidation().ok) tags.push('<span class="tag danger">存在校验错误</span>');
       return tags.join("");
@@ -1226,7 +1224,7 @@
       const plan = monthlyPlan();
       const freezeReasons = [];
       if (invested >= targetInvestAmount() - 1e-6) freezeReasons.push("持仓≥40%");
-      if (currentExposureAmount() >= maxExposureAmount() - 1e-6) freezeReasons.push("敞口≥70%");
+      if (currentExposureAmount() >= maxExposureAmount() - 1e-6) freezeReasons.push("持仓敞口≥70%");
       if (state.settings?.portfolio?.fearOfMissingOut) freezeReasons.push("怕踏空标记");
       const freezeLine = freezeReasons.length ? `冻结：${freezeReasons.join(" / ")}` : "冻结：否";
       const snapshotLine = drawdownSnapshotActive()
@@ -1243,7 +1241,7 @@
               <div class="donut" style="--invested-deg:${deg}deg">
                 <div class="donut-center">
                   <div class="donut-number">${escapeHtml(fmtPercent(exposurePct))}%</div>
-                  <div class="donut-label">纳指总敞口</div>
+                  <div class="donut-label">纳指持仓敞口</div>
                 </div>
               </div>
             </div>
@@ -1270,7 +1268,7 @@
                 <div class="stat-note">${escapeHtml(fmtPercent(otherPct))}% / 目标 ${escapeHtml(fmtPercent(otherCashTargetPercent()))}% · 目标 ¥${escapeHtml(fmtMoney(targetOtherCashAmount()))}</div>
               </div>
               <div class="stat">
-                <div class="stat-label">纳指总敞口</div>
+                <div class="stat-label">纳指持仓敞口</div>
                 <div class="stat-value">¥${escapeHtml(fmtMoney(currentExposureAmount()))}</div>
                 <div class="stat-note">${escapeHtml(fmtPercent(exposurePct))}% / 上限 ${escapeHtml(fmtPercent(exposureLimitPercent()))}% · 剩余 ¥${escapeHtml(fmtMoney(remainingExposureAmount()))}</div>
               </div>
